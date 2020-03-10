@@ -10,7 +10,7 @@ plt.rcParams["ps.fonttype"] = 42
 
 def define_pallete(
     DF,
-    ay_pattern="[a|y|m]..?",
+    ay_pattern="[a|y]..?",
     ay_color="#9FADAD",
     old_pattern="o..?",
     old_color="#F57171",
@@ -18,12 +18,15 @@ def define_pallete(
     treated_color="#539DC2",
     Other_treatment_pattern="[r|s]..?",
     Other_treatment_pattern_color="#009900",
+    m_treatment_pattern="m..?",
+    m_treatment_color="#BA55D3",
 ):
     Color_List = (
         DF.columns.str.replace(ay_pattern, ay_color)
         .str.replace(old_pattern, old_color)
         .str.replace(treated_pattern, treated_color)
         .str.replace(Other_treatment_pattern, Other_treatment_pattern_color)
+        .str.replace(m_treatment_pattern, m_treatment_color)
         .tolist()
     )
     Cols = DF.columns.tolist()
@@ -51,7 +54,7 @@ def create_strip_or_swarm_boxplot(
 
     ColsColor_Dict = define_pallete(DF)
 
-    if DF.shape[0] < 15:
+    if DF.shape[0] < 20:
         ax = sns.swarmplot(
             data=DF,
             palette=ColsColor_Dict,
