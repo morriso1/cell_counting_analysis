@@ -54,7 +54,7 @@ def create_strip_or_swarm_boxplot(
 
     ColsColor_Dict = define_pallete(DF)
 
-    if DF.shape[0] < 22:
+    if DF.shape[0] < 30:
         ax = sns.swarmplot(
             data=DF,
             palette=ColsColor_Dict,
