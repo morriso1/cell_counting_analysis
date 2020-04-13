@@ -10,15 +10,15 @@ plt.rcParams["ps.fonttype"] = 42
 
 def define_pallete(
     DF,
-    ay_pattern="[a|y|m]..?",
+    ay_pattern="[a|y|m]..?.?",
     ay_color="#9FADAD",
-    old_pattern="o..?",
+    old_pattern="o..?.?",
     old_color="#F57171",
-    treated_pattern="[b|c|d|e|f]..?",
+    treated_pattern="[b|c|d|e|f]..?.?",
     treated_color="#539DC2",
-    Other_treatment_pattern="[r|s]..?",
+    Other_treatment_pattern="[r|s]..?.?",
     Other_treatment_pattern_color="#009900",
-    m_treatment_pattern="m..?",
+    m_treatment_pattern="m..?.?",
     m_treatment_color="#BA55D3",
 ):
     Color_List = (

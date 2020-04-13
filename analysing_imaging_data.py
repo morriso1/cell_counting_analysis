@@ -121,7 +121,13 @@ def analyse_imagej_CSVs(
     Sorted_Div_DF_Median = combining_gut_DFs(pd.DataFrame(Divided_DF.median()).T)
 
     ExpAnalysisName = exp_analysis_name(Exp_Folder)
-    return ExpAnalysisName, Sorted_Div_DF, Sorted_Div_DF_Mean, Sorted_Div_DF_Median
+    return (
+        ExpAnalysisName,
+        Sorted_Div_DF,
+        Sorted_Div_DF_Mean,
+        Sorted_Div_DF_Median,
+        Divided_DF,
+    )
 
 
 # %%
