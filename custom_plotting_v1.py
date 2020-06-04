@@ -80,7 +80,8 @@ def create_strip_or_swarm_boxplot(
     else:
         if UpperAxisLimit == None:
             UpperAxisLimit = (
-                DF.quantile(0.75) + (DF.quantile(0.75) - DF.quantile(0.25)) * 1.7
+                DF.quantile(0.75) + (DF.quantile(0.75) -
+                                     DF.quantile(0.25)) * 1.7
             ).max()
 
         ax = sns.stripplot(
@@ -163,16 +164,144 @@ def identify_y_axis_label(ExpAnalysisName):
 
 def determine_fig_width(DF):
     """Input: Takes DF
-    
+
     Function: Determine number of columns. If less than 3 cols, Fig_Width is 1.5. 
     If 4-5 cols, Fig_Width is 2.5. If more than 5 cols, Fig_Width is 3.75. 
-    
+
     Output: Return Fig_Width"""
 
     if DF.shape[1] <= 3:
         Fig_Width = 1.5
 
     elif 3 < DF.shape[1] < 5:
+        Fig_Width = 2.5
+
+    else:
+        Fig_Width = 3.75
+
+    return Fig_Width
+
+
+def define_pallette_tidy(
+    series_id,
+    color_mappings=dict(
+        {
+            "[a|y|m]..?.?": "#9FADAD",
+            "o..?.?": "#F57171",
+            "[b|c|d|e|f]..?.?": "#539DC2",
+            "[r|s]..?.?": "#009900",
+            "m..?.?": "#BA55D3",
+        }
+    ),
+):
+
+    series_id = pd.Series(series_id.unique())
+
+    for mapping, color in color_mappings.items():
+        series_id = series_id.str.replace(mapping, color)
+
+    return series_id.to_list()
+
+
+def tidy_create_strip_box_plot(
+    x_figSize=2.5,
+    y_figSize=2.5,
+    ScaleSize=1,
+    y_axis_start=0,
+    y_axis_limit=None,
+    y_label="set y label",
+    save_fig=False,
+    ExpName="Test_plot",
+    **kwargs,
+):
+    """Creates sns plots. Pass **kwargs to sns.stripplot and sns.boxplot."""
+
+    fig, ax = plt.subplots()
+    fig.set_size_inches(x_figSize * ScaleSize, y_figSize * ScaleSize)
+
+    ax = sns.stripplot(
+        alpha=0.2, zorder=0, jitter=0.3, edgecolor="gray", linewidth=0.5, **kwargs
+    )
+    ax = sns.boxplot(
+        fliersize=0, zorder=1, saturation=0.9, linewidth=1.5, notch=True, **kwargs
+    )
+
+    if y_axis_limit != None:
+        ax.set_ylim(top=y_axis_limit)
+
+    ax.set_ylim(bottom=y_axis_start)
+    ax.set_ylabel(y_label, fontsize=12)
+    ax.xaxis.set_tick_params(width=1)
+    ax.yaxis.set_tick_params(width=1)
+    ax.tick_params(axis="both", which="major", pad=1)
+    ax.xaxis.set_label_text("")
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.setp(ax.spines.values(), linewidth=1)
+    sns.despine()
+
+    if save_fig:
+        plt.savefig(f"{ExpName}.pdf", transparent=True, bbox_inches="tight")
+
+
+def tidy_create_swarm_box_plot(
+    x_figSize=2.5,
+    y_figSize=2.5,
+    ScaleSize=1,
+    y_axis_start=0,
+    y_axis_limit=None,
+    y_label="set y label",
+    save_fig=False,
+    ExpName="Test_plot",
+    **kwargs,
+):
+    """Creates sns plots. Pass **kwargs to sns.swarmplot and sns.boxplot."""
+
+    fig, ax = plt.subplots()
+    fig.set_size_inches(x_figSize * ScaleSize, y_figSize * ScaleSize)
+
+    ax = sns.swarmplot(
+        alpha=0.8, zorder=1, edgecolor="gray", linewidth=0.5, size=5, **kwargs
+    )
+
+    ax = sns.boxplot(
+        fliersize=0, zorder=0, saturation=0.9, linewidth=1.5, notch=False, **kwargs
+    )
+
+    for patch in ax.artists:
+        r, g, b, a = patch.get_facecolor()
+        patch.set_facecolor((r, g, b, 0.5))
+
+    if y_axis_limit != None:
+        ax.set_ylim(top=y_axis_limit)
+
+    ax.set_ylim(bottom=y_axis_start)
+    ax.set_ylabel(y_label, fontsize=12)
+    ax.xaxis.set_tick_params(width=1)
+    ax.yaxis.set_tick_params(width=1)
+    ax.tick_params(axis="both", which="major", pad=1)
+    ax.xaxis.set_label_text("")
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.setp(ax.spines.values(), linewidth=1)
+    sns.despine()
+
+    if save_fig:
+        plt.savefig(f"{ExpName}.pdf", transparent=True, bbox_inches="tight")
+
+
+def determine_fig_width_from_palette(color_pal):
+    """Input: Takes palette list to be used in plotting.
+
+    Function: Determine number of items in list. If less than 3 list, Fig_Width is 1.5. 
+    If 4-5 cols, Fig_Width is 2.5. If more than 5 list, Fig_Width is 3.75. 
+
+    Output: Return Fig_Width"""
+
+    if len(color_pal) <= 3:
+        Fig_Width = 1.5
+
+    elif 3 < len(color_pal) < 5:
         Fig_Width = 2.5
 
     else:

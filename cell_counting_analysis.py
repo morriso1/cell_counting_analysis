@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -15,9 +13,13 @@ from skimage import io
 from skimage import morphology as sk_mm
 from skimage import filters
 from skimage import measure
+from scipy import ndimage
+import skimage
+import skimage.feature
 from scipy.ndimage import morphology as sp_mm
 from skimage.util import img_as_ubyte
 from scipy.stats import mode
+import cv2
 import custom_plotting_v1 as cust_plt
 import analysing_imaging_data as aid
 
@@ -56,9 +58,6 @@ def apply_binary_methods(
     return edited_binary_image
 
 
-# In[4]:
-
-
 def extract_regions_from_binary(
     binary_image, min_area=None, max_area=None, min_sphericity=None
 ):
@@ -74,22 +73,16 @@ def extract_regions_from_binary(
     return region_list
 
 
-# In[5]:
-
-
 def create_binary_image_from_region_list(original_image, region_list):
 
     new_image = np.zeros(original_image.shape, dtype="bool")
 
     for region in region_list:
         new_image[
-            region.bbox[0] : region.bbox[2], region.bbox[1] : region.bbox[3]
+            region.bbox[0]: region.bbox[2], region.bbox[1]: region.bbox[3]
         ] += region.image
 
     return new_image
-
-
-# In[6]:
 
 
 def create_dict_of_binary_masks(
@@ -126,9 +119,6 @@ def create_dict_of_binary_masks(
     return dict_binary_masks
 
 
-# In[7]:
-
-
 def save_dict_binary_masks(
     dict_binary_masks, Save_Dir="Binaries_C1", method_img_type=img_as_ubyte
 ):
@@ -145,9 +135,6 @@ def save_dict_binary_masks(
     return print(f"Binary images saved at '{Save_Dir}'")
 
 
-# In[8]:
-
-
 def region_overlap(DF, label_img_outer=None, label_img_inner=None, overlap_thresh=0.5):
     overlap = label_img_outer[label_img_inner == DF["label"]]
     total_overlap_region = overlap.ravel().size
@@ -162,9 +149,6 @@ def region_overlap(DF, label_img_outer=None, label_img_inner=None, overlap_thres
         is_in = 0
 
     return is_in
-
-
-# In[9]:
 
 
 def in_region_three_channel(
@@ -208,9 +192,6 @@ def in_region_three_channel(
     return DF_C0
 
 
-# In[10]:
-
-
 def create_RGB_image_overlapping_regions(DF_C0, C0_img=None):
     rgbArray = np.zeros((C0_img.shape[0], C0_img.shape[1], 3), dtype="uint8")
 
@@ -233,14 +214,8 @@ def create_RGB_image_overlapping_regions(DF_C0, C0_img=None):
     return rgbArray
 
 
-# In[11]:
-
-
 def read_image_2d(fn):
     return io.imread(fn)
-
-
-# In[12]:
 
 
 def test_imagecollections_same_files_and_order(
@@ -255,9 +230,6 @@ def test_imagecollections_same_files_and_order(
         all(items == extract_match_args[0] for items in extract_match_args),
         extract_match_args[0],
     )
-
-
-# In[13]:
 
 
 def marcm_save_CSVs_RGB_images_overlapping_regions(
@@ -316,9 +288,6 @@ def marcm_save_CSVs_RGB_images_overlapping_regions(
     return Dict_DFs
 
 
-# In[14]:
-
-
 def analyse_marcm_DFs(DF, DF_name=None, EC_min_area=40):
     DF_new = pd.DataFrame()
 
@@ -354,9 +323,6 @@ def analyse_marcm_DFs(DF, DF_name=None, EC_min_area=40):
     return DF_new
 
 
-# In[15]:
-
-
 def analyse_marcm_DFs_alt(DF, DF_name=None, EC_min_area=40):
     DF_new = pd.DataFrame()
 
@@ -384,16 +350,14 @@ def analyse_marcm_DFs_alt(DF, DF_name=None, EC_min_area=40):
     return DF_new
 
 
-# In[16]:
-
-
 def combine_marcm_dict_DFs(
     Dict_DFs, analyse_method=analyse_marcm_DFs_alt, EC_min_area=50, total_col="Total"
 ):
     Output_DF_num = pd.DataFrame()
 
     for keys in Dict_DFs:
-        DF = analyse_method(Dict_DFs[keys], DF_name=keys, EC_min_area=EC_min_area)
+        DF = analyse_method(
+            Dict_DFs[keys], DF_name=keys, EC_min_area=EC_min_area)
         Output_DF_num = Output_DF_num.append(DF)
 
     cols = Output_DF_num.columns.tolist()
@@ -412,9 +376,6 @@ def combine_marcm_dict_DFs(
     return Output_DF_num, Output_DF_percentage
 
 
-# In[17]:
-
-
 def define_sample_in_or_out_clone(foo):
     if foo.str.contains("a1g[0-9][0-9]?p[0-9]_region_0")[0]:
         return "a1_outside_clone"
@@ -426,9 +387,6 @@ def define_sample_in_or_out_clone(foo):
         return "a2_inside_clone"
     else:
         return "unknown"
-
-
-# In[18]:
 
 
 def sorted_DFs_mean_sem(DF, set_index_col="Sample_in_or_out_clone", remove_col="Total"):
@@ -451,9 +409,6 @@ def sorted_DFs_mean_sem(DF, set_index_col="Sample_in_or_out_clone", remove_col="
         DF_sem.drop(columns=remove_col, inplace=True)
 
     return DF_mean, DF_sem
-
-
-# In[19]:
 
 
 def create_stack_bar_plot(
@@ -514,8 +469,90 @@ def create_stack_bar_plot(
     plt.rcParams["pdf.fonttype"] = 42
     plt.rcParams["ps.fonttype"] = 42
 
-    plt.savefig(f"{File_Name}{Plot_Name}.pdf", transparent=True, bbox_inches="tight")
+    plt.savefig(f"{File_Name}{Plot_Name}.pdf",
+                transparent=True, bbox_inches="tight")
 
 
-# In[ ]:
+def watershed_binary_img_to_labelled_img(
+    binary_img, gaussian_sigma=3, kernel_size_peak_local_max=np.ones((18, 18))
+):
+    distance = ndimage.distance_transform_edt(binary_img)
+    distance = skimage.filters.gaussian(distance, sigma=gaussian_sigma)
+    local_maxi = skimage.feature.peak_local_max(
+        distance, indices=False, footprint=kernel_size_peak_local_max, labels=binary_img
+    )
+    markers = skimage.morphology.label(local_maxi)
+    watershed_img = skimage.morphology.watershed(
+        -distance, markers=markers, mask=binary_img
+    )
+    return watershed_img
 
+
+def create_labelled_img_dict_from_folder(label_img_re=r"\w\dg\d\d?", **kwargs):
+    img_collection = io.ImageCollection(**kwargs)
+    labelled_img_dict = {
+        re.search(label_img_re, file)[0]: measure.label(img_collection[i])
+        for i, file in enumerate(img_collection.files)
+    }
+    return labelled_img_dict
+
+
+def create_img_dict_from_folder(label_img_re=r"\w\dg\d\d?", **kwargs):
+    img_collection = io.ImageCollection(**kwargs)
+    labelled_img_dict = {
+        re.search(label_img_re, file)[0]: img_collection[i]
+        for i, file in enumerate(img_collection.files)
+    }
+    return labelled_img_dict
+
+
+def measure_region_props_to_tidy_df(
+    img_dictionary, labelled_dictionary_img_masks, **kwargs
+):
+
+    df_to_append = pd.DataFrame()
+
+    for key, img in img_dictionary.items():
+        df = pd.DataFrame(
+            measure.regionprops_table(
+                labelled_dictionary_img_masks[key], intensity_image=img, **kwargs
+            )
+        )
+        df["image_key"] = key
+
+        df_to_append = df_to_append.append(df).reset_index(drop=True)
+
+    return df_to_append
+
+
+def outline_contours_labelled_img(
+    labelled_img,
+    img_to_outline,
+    constrast_stretch_low_bound=2,
+    constrast_stretch_upper_bound=98,
+):
+    con_list = list()
+    for value in np.unique(labelled_img):
+        if not value == 0:
+            contours, _ = cv2.findContours(
+                img_as_ubyte(labelled_img == value),
+                cv2.RETR_LIST,
+                cv2.CHAIN_APPROX_SIMPLE,
+            )
+            con_list.extend(contours)
+            input_image = cv2.cvtColor(
+                skimage.img_as_ubyte(img_to_outline), cv2.COLOR_GRAY2RGB
+            )
+
+            p_low, p_high = np.percentile(
+                input_image,
+                (constrast_stretch_low_bound, constrast_stretch_upper_bound),
+            )
+
+            input_image = skimage.exposure.rescale_intensity(
+                input_image, in_range=(p_low, p_high))
+
+            outlined_img = cv2.drawContours(
+                input_image, con_list, -1, (255, 0, 0), 2)
+
+    return outlined_img

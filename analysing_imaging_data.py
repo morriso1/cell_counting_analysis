@@ -1,5 +1,6 @@
 # %%
 import pandas as pd
+import dask.dataframe as dd
 import numpy as np
 import glob
 import os
@@ -10,9 +11,12 @@ import re
  compileCSVs_sortbycondition_apply_method"""
 
 # %%
+
+
 def exp_analysis_name(Exp_Folder=os.getcwd()):
 
-    Exp_Folder_List = [items.replace(" ", "_") for items in Exp_Folder.split("/")]
+    Exp_Folder_List = [items.replace(" ", "_")
+                       for items in Exp_Folder.split("/")]
     if "Anterior" or "Posterior" in Exp_Folder_List:
         ExpAnalysisName = (
             Exp_Folder_List[-5]
@@ -25,7 +29,8 @@ def exp_analysis_name(Exp_Folder=os.getcwd()):
         )
     else:
         ExpAnalysisName = (
-            Exp_Folder_List[-4] + "_" + Exp_Folder_List[-3] + "_" + Exp_Folder_List[-1]
+            Exp_Folder_List[-4] + "_" + Exp_Folder_List[-3] +
+            "_" + Exp_Folder_List[-1]
         )
 
     return ExpAnalysisName
@@ -64,7 +69,8 @@ def combining_gut_DFs(DF):
     for Condition in UniqueConditions:
         DF_Temp = DF[Condition].T
         Sorted_DF_Temp = (
-            pd.DataFrame(DF_Temp.values.flatten()).dropna().reset_index(drop=True)
+            pd.DataFrame(DF_Temp.values.flatten()
+                         ).dropna().reset_index(drop=True)
         )
         Sorted_DF = pd.concat([Sorted_DF, Sorted_DF_Temp], axis=1)
 
@@ -80,10 +86,12 @@ def analyse_imagej_CSVs(
     Path_Num_Dir = os.path.join(Exp_Folder, Num_Dir)
 
     if os.path.isdir(Path_Num_Dir):
-        Num_DF = compile_DF_from_CSVdirectory(Path_Num_Dir, usecolumns=usecolumns)
+        Num_DF = compile_DF_from_CSVdirectory(
+            Path_Num_Dir, usecolumns=usecolumns)
 
     else:
-        print(f"Num_Dir input '{Num_Dir}' is not a directory located in:\n{Exp_Folder}")
+        print(
+            f"Num_Dir input '{Num_Dir}' is not a directory located in:\n{Exp_Folder}")
         return
 
     if Denom_Dir == None:
@@ -118,7 +126,8 @@ def analyse_imagej_CSVs(
     Divided_DF = Num_DF.div(Denom_DF)
     Sorted_Div_DF = combining_gut_DFs(Divided_DF)
     Sorted_Div_DF_Mean = combining_gut_DFs(pd.DataFrame(Divided_DF.mean()).T)
-    Sorted_Div_DF_Median = combining_gut_DFs(pd.DataFrame(Divided_DF.median()).T)
+    Sorted_Div_DF_Median = combining_gut_DFs(
+        pd.DataFrame(Divided_DF.median()).T)
 
     ExpAnalysisName = exp_analysis_name(Exp_Folder)
     return (
@@ -141,7 +150,8 @@ def df_to_pzfx(DF_1, DF_2, DF_3, Index=0):
     ]
     with open(Template_Path[Index], "r") as f:
         Content = f.readlines()
-        Indices = [i for i, Elements in enumerate(Content) if "sample" in Elements]
+        Indices = [i for i, Elements in enumerate(
+            Content) if "sample" in Elements]
         # find the location of every sample in the template.to_pzfx
 
     DF_1 = "<d>" + DF_1.astype(str) + "</d>\n"
@@ -172,7 +182,7 @@ def df_to_pzfx(DF_1, DF_2, DF_3, Index=0):
         "</RowTitlesColumn>\n",
         '<YColumn Width="211" Decimals="6" Subcolumns="1">\n',
     ]
-    Content_Tail = Content[(Indices[-1] + 3) :]
+    Content_Tail = Content[(Indices[-1] + 3):]
 
     Temp_A = []
     Temp_B = []
@@ -229,9 +239,9 @@ def check_if_list_of_folders_exists(
     Exp_Folder=os.getcwd(), FoldersToCount=["Output_C0", "Output_C2"]
 ):
     """Input: Takes path to experiment folder and list of folders.
-    
+
     Function: Checks if list of folders are in the experiment folder.
-    
+
     Output: Returns boolean if they exist (first output) and list of full paths of input folders (second output)"""
 
     Path_Num_Dir_L = list()
@@ -250,13 +260,12 @@ def check_if_list_of_folders_exists(
 def summarise_and_sort_list_of_DFs(
     L_DFs, Method="count", Folders=["Output_C0", "Output_C2"]
 ):
-
     """Input: Takes as input list of pd.DataFrames, method to summarise to them (e.g. count, median or median) and 
     folders from which list of pd.DataFrames was constructed.
-    
+
     Function: Checks if lists of pd.DataFrames and folders are same length, sorts and concats pd.DataFrames by unique
     condition and places them into single dictionary.
-    
+
     Output: Returns sorted pd.DataFrames in dictionary with folder name as key."""
 
     if type(L_DFs) is list and type(Folders) is list and len(L_DFs) == len(Folders):
@@ -309,10 +318,10 @@ def compileCSVs_sortbycondition_apply_method(
 ):
     """Input: Takes path to experiment folder, list of folders to apply a summarise method and type of
     summarise method to apply (e.g. count, median or median).
-    
+
     Function: Checks if list of folders exists, reads in and compiles CSVs by folder as list of pd.DataFrames,
     summarises and sorts list of pd.DataFrames.
-    
+
     Returns: Returns sorted pd.DataFrames in dictionary with folder name as key.
     """
 
@@ -332,3 +341,23 @@ def compileCSVs_sortbycondition_apply_method(
 
     else:
         return
+
+# %%
+
+
+def read_csv_folder_into_tidy_df(csv_glob):
+    """Takes glob to csv folder as input.
+    Combines into tidy dataframe.
+    Returns tidy dataframe."""
+
+    df = (
+        dd.read_csv(csv_glob, include_path_column="Sample_Gut_id")
+        .compute()
+        .drop(columns=[" "])
+    )
+
+    df["Sample_Gut_id"] = df["Sample_Gut_id"].str.extract("([a-z]\dg\d)")
+    df["Sample_id"] = df["Sample_Gut_id"].str.extract("([a-z]\d)")
+    df["Gut_id"] = df["Sample_Gut_id"].str.extract("(g\d)")
+
+    return df
