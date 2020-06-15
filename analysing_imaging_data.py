@@ -17,7 +17,10 @@ def exp_analysis_name(Exp_Folder=os.getcwd()):
 
     Exp_Folder_List = [items.replace(" ", "_")
                        for items in Exp_Folder.split("/")]
-    if "Anterior" or "Posterior" in Exp_Folder_List:
+    if len(Exp_Folder_List) < 4:
+        ExpAnalysisName = 'test'
+        return ExpAnalysisName
+    elif "Anterior" or "Posterior" in Exp_Folder_List:
         ExpAnalysisName = (
             Exp_Folder_List[-5]
             + "_"
