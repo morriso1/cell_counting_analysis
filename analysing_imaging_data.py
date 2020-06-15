@@ -345,7 +345,7 @@ def compileCSVs_sortbycondition_apply_method(
 # %%
 
 
-def read_csv_folder_into_tidy_df(csv_glob):
+def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' ']):
     """Takes glob to csv folder as input.
     Combines into tidy dataframe.
     Returns tidy dataframe."""
@@ -353,7 +353,7 @@ def read_csv_folder_into_tidy_df(csv_glob):
     df = (
         dd.read_csv(csv_glob, include_path_column="Sample_Gut_id")
         .compute()
-        .drop(columns=[" "])
+        .drop(columns=drop_columns)
     )
 
     df["Sample_Gut_id"] = df["Sample_Gut_id"].str.extract("([a-z]\dg\d)")
