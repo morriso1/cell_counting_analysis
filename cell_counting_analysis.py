@@ -20,7 +20,7 @@ from scipy.ndimage import morphology as sp_mm
 from skimage.util import img_as_ubyte
 from scipy.stats import mode
 import cv2
-import custom_plotting_v1 as cust_plt
+import custom_plotting as cust_plt
 import analysing_imaging_data as aid
 
 
