@@ -120,7 +120,7 @@ def create_dict_of_binary_masks(
 
 
 def save_dict_binary_masks(
-    dict_binary_masks, Save_Dir="Binaries_C1", method_img_type=img_as_ubyte
+    dict_binary_masks, Save_Dir="Binaries_C1", method_img_type=img_as_ubyte, file_type='.tiff'
 ):
 
     if not os.path.isdir(Save_Dir):
@@ -130,7 +130,7 @@ def save_dict_binary_masks(
         fn = os.path.split(key)[-1]
         fn_path = os.path.join(Save_Dir, fn)
         img = method_img_type((dict_binary_masks[key]))
-        io.imsave(fn_path, img)
+        io.imsave(fn_path + file_type, img)
 
     return print(f"Binary images saved at '{Save_Dir}'")
 
@@ -556,3 +556,37 @@ def outline_contours_labelled_img(
                 input_image, con_list, -1, (255, 0, 0), 2)
 
     return outlined_img
+
+
+def num_div_denom_measure_region_props_to_tidy_df(
+    num_img_dict,
+    denom_img_dict,
+    label_imgs,
+    sample_id_categories=None,
+    properties_num=["label", "area", "mean_intensity"],
+    properties_denom=["label", "mean_intensity"],
+):
+    if sample_id_categories == None:
+        print("define sample_id_categories")
+        return
+
+    df = pd.merge(
+        measure_region_props_to_tidy_df(
+            num_img_dict, label_imgs, properties=properties_num
+        ),
+        measure_region_props_to_tidy_df(
+            denom_img_dict, label_imgs, properties=properties_denom
+        ),
+        how="left",
+        on=("image_key", "label"),
+        suffixes=("_num", "_denom"),
+    ).assign(
+        mean_intensity_num_div_denom=lambda x: x["mean_intensity_num"]
+        / x["mean_intensity_denom"],
+        sample_id=lambda x: pd.Categorical(
+            x["image_key"].str.split("g", expand=True)[0],
+            categories=sample_id_categories,
+        ),
+        gut_id=lambda x: x["image_key"].str.split("g", expand=True)[1],
+    )
+    return df
