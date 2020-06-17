@@ -566,10 +566,6 @@ def num_div_denom_measure_region_props_to_tidy_df(
     properties_num=["label", "area", "mean_intensity"],
     properties_denom=["label", "mean_intensity"],
 ):
-    if sample_id_categories == None:
-        print("define sample_id_categories")
-        return
-
     df = pd.merge(
         measure_region_props_to_tidy_df(
             num_img_dict, label_imgs, properties=properties_num
@@ -580,13 +576,25 @@ def num_div_denom_measure_region_props_to_tidy_df(
         how="left",
         on=("image_key", "label"),
         suffixes=("_num", "_denom"),
-    ).assign(
-        mean_intensity_num_div_denom=lambda x: x["mean_intensity_num"]
-        / x["mean_intensity_denom"],
-        sample_id=lambda x: pd.Categorical(
-            x["image_key"].str.split("g", expand=True)[0],
-            categories=sample_id_categories,
-        ),
-        gut_id=lambda x: x["image_key"].str.split("g", expand=True)[1],
     )
+    if sample_id_categories is not None:
+        df = df.assign(
+            mean_intensity_num_div_denom=lambda x: x["mean_intensity_num"]
+            / x["mean_intensity_denom"],
+            sample_id=lambda x: pd.Categorical(
+                x["image_key"].str.split("g", expand=True)[0],
+                categories=sample_id_categories,
+            ),
+            gut_id=lambda x: x["image_key"].str.split("g", expand=True)[1],
+        )
+
+    else:
+        df = df.assign(
+            mean_intensity_num_div_denom=lambda x: x["mean_intensity_num"]
+            / x["mean_intensity_denom"],
+            sample_id=lambda x: pd.Categorical(
+                x["image_key"].str.split("g", expand=True)[0]),
+            gut_id=lambda x: x["image_key"].str.split("g", expand=True)[1],
+        )
+
     return df
