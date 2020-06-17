@@ -183,7 +183,7 @@ def determine_fig_width(DF):
 
 
 def define_pallette_tidy(
-    series_id,
+    series_id_category,
     color_mappings=dict(
         {
             "[a|y|m]..?.?": "#9FADAD",
@@ -195,7 +195,7 @@ def define_pallette_tidy(
     ),
 ):
 
-    series_id = pd.Series(series_id.unique())
+    series_id = pd.Series(series_id_category.cat.categories)
 
     for mapping, color in color_mappings.items():
         series_id = series_id.str.replace(mapping, color)
