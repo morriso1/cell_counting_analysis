@@ -334,20 +334,47 @@ def compileCSVs_sortbycondition_apply_method(
         return
 
 
-def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' ']):
-    """Takes glob to csv folder as input.
+def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' '], sample_id_categories=None):
+    """
+    Input
+    -----
+    Takes glob (str) to csv folder as input. Optional sample_id_categories (e.g. list).
+
+    Function
+    --------
     Combines into tidy dataframe.
-    Returns tidy dataframe."""
+
+    Returns
+    -------
+    Returns tidy dataframe.
+    """
 
     df = (
-        dd.read_csv(csv_glob, include_path_column="Sample_Gut_id")
+        dd.read_csv(csv_glob, include_path_column="sample_gut_id")
         .compute()
         .drop(columns=drop_columns)
     )
 
-    df["Sample_Gut_id"] = df["Sample_Gut_id"].str.extract("([a-z]\dg\d)")
-    df["Sample_id"] = df["Sample_Gut_id"].str.extract("([a-z]\d)")
-    df["Gut_id"] = df["Sample_Gut_id"].str.extract("(g\d)")
+    if sample_id_categories is None:
+        df = df.assign(
+            sample_gut_id=lambda x: x["sample_gut_id"].str.findall(
+                "[a-z]\dg\d\d?").str[-1],
+            sample_id=lambda x: pd.Categorical(
+                x["sample_gut_id"].str.split("g", expand=True)[0],
+            ),
+            gut_id=lambda x: x["sample_gut_id"].str.split("g", expand=True)[1],
+        )
+
+    else:
+        df = df.assign(
+            sample_gut_id=lambda x: x["sample_gut_id"].str.findall(
+                "[a-z]\dg\d\d?").str[-1],
+            sample_id=lambda x: pd.Categorical(
+                x["sample_gut_id"].str.split("g", expand=True)[
+                    0], categories=sample_id_categories
+            ),
+            gut_id=lambda x: x["sample_gut_id"].str.split("g", expand=True)[1],
+        )
 
     return df
 
