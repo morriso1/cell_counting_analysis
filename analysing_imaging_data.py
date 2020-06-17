@@ -1,4 +1,3 @@
-# %%
 import pandas as pd
 import dask.dataframe as dd
 import numpy as np
@@ -9,8 +8,6 @@ import re
 """Module contains functions: exp_analysis_name, compile_DF_from_CSVdirectory, extract_gut_names, combining_gut_DFs,
  analyse_imagej_CSVs, df_to_pzfx, write_pzfx, check_if_list_of_folders_exists, summarise_and_sort_list_of_DFs and 
  compileCSVs_sortbycondition_apply_method"""
-
-# %%
 
 
 def exp_analysis_name(Exp_Folder=os.getcwd()):
@@ -39,7 +36,6 @@ def exp_analysis_name(Exp_Folder=os.getcwd()):
     return ExpAnalysisName
 
 
-# %%
 def compile_DF_from_CSVdirectory(Path_Dir, usecolumns=["Mean"]):
     """
     Input: Function takes
@@ -53,7 +49,6 @@ def compile_DF_from_CSVdirectory(Path_Dir, usecolumns=["Mean"]):
     return Compiled_DF
 
 
-# %%
 def extract_gut_names(DF):
     Columns_DF = DF.columns.to_list()
     RE_Match_L = list()
@@ -63,7 +58,6 @@ def extract_gut_names(DF):
     return RE_Match_L
 
 
-# %%
 def combining_gut_DFs(DF):
     DF.columns = DF.columns.str[0:3]
     UniqueConditions = sorted(list(set(DF.columns.tolist())))
@@ -82,7 +76,6 @@ def combining_gut_DFs(DF):
     return Sorted_DF
 
 
-# %%
 def analyse_imagej_CSVs(
     Exp_Folder=os.getcwd(), Num_Dir="Output_C0", Denom_Dir=None, usecolumns=["Mean"]
 ):
@@ -142,7 +135,6 @@ def analyse_imagej_CSVs(
     )
 
 
-# %%
 def df_to_pzfx(DF_1, DF_2, DF_3, Index=0):
     """Function takes three pd dataframes and combines them into a prism file
     based on template located at Template_Path"""
@@ -224,7 +216,6 @@ def df_to_pzfx(DF_1, DF_2, DF_3, Index=0):
     return Prism_Output
 
 
-# %%
 def write_pzfx(Prism_Output, Save_Dir=os.getcwd(), ExpAnalysisName=None):
     if ExpAnalysisName == None:
         print("Please provide ExpAnalysisName")
@@ -237,7 +228,6 @@ def write_pzfx(Prism_Output, Save_Dir=os.getcwd(), ExpAnalysisName=None):
     print(f"The prism file:\n'{ExpAnalysisName}' \nwas saved at\n'{Save_Dir}'")
 
 
-# %%
 def check_if_list_of_folders_exists(
     Exp_Folder=os.getcwd(), FoldersToCount=["Output_C0", "Output_C2"]
 ):
@@ -259,7 +249,6 @@ def check_if_list_of_folders_exists(
     return True, Path_Num_Dir_L
 
 
-# %%
 def summarise_and_sort_list_of_DFs(
     L_DFs, Method="count", Folders=["Output_C0", "Output_C2"]
 ):
@@ -313,7 +302,6 @@ def summarise_and_sort_list_of_DFs(
         print(f"L_DFs and {Folders} are not lists of the same length")
 
 
-# %%
 def compileCSVs_sortbycondition_apply_method(
     Exp_Folder=os.getcwd(),
     FoldersToApplyMethodTo=["Output_C0", "Output_C2"],
@@ -344,8 +332,6 @@ def compileCSVs_sortbycondition_apply_method(
 
     else:
         return
-
-# %%
 
 
 def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' ']):
