@@ -350,3 +350,35 @@ def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' ']):
     df["Gut_id"] = df["Sample_Gut_id"].str.extract("(g\d)")
 
     return df
+
+
+def grouped_tidy_data_summary_stats(
+    tidy_df, group_col="image_key", categories=None, agg_funcs=['mean'], **agg_kwargs
+):
+    """
+    Input
+    -----
+    Takes tidy DataFrame, group_col (str), categories (e.g. list) and aggregation functions.
+
+    Returns
+    -------
+    Tidy DataFrame with 'summary_stats' performed on selected group.
+    """
+
+    tidy_df_grouped = (
+        tidy_df.groupby(by=group_col)
+        .agg(agg_funcs, **agg_kwargs, axis="column")
+        .stack()
+        .reset_index()
+        .rename(columns={"level_1": "summary_stat"})
+    )
+
+    if categories is not None:
+        tidy_df_grouped[["sample_id", "gut_id"]] = tidy_df_grouped[group_col].str.split(
+            "g", expand=True
+        )
+        tidy_df_grouped["sample_id"] = pd.Categorical(
+            tidy_df_grouped["sample_id"], categories=categories
+        )
+
+    return(tidy_df_grouped)
