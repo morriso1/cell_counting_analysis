@@ -219,7 +219,7 @@ def read_image_2d(fn):
 
 
 def test_imagecollections_same_files_and_order(
-    *args, pattern=re.compile(r"[a-z][0-9]g[0-9][0-9]?p[0-9]")
+    *args, pattern=re.compile(r"[a-z][0-9]g[0-9][0-9]?\w[0-9]")
 ):
     extract_match_args = list()
     for args in args:
@@ -377,13 +377,13 @@ def combine_marcm_dict_DFs(
 
 
 def define_sample_in_or_out_clone(foo):
-    if foo.str.contains("a1g[0-9][0-9]?p[0-9]_region_0")[0]:
+    if foo.str.contains("a1g[0-9][0-9]?\w[0-9]_region_0")[0]:
         return "a1_outside_clone"
-    if foo.str.contains("a1g[0-9][0-9]?p[0-9]_region_[1-9][0-9]?")[0]:
+    if foo.str.contains("a1g[0-9][0-9]?\w[0-9]_region_[1-9][0-9]?")[0]:
         return "a1_inside_clone"
-    if foo.str.contains("a2g[0-9][0-9]?p[0-9]_region_0")[0]:
+    if foo.str.contains("a2g[0-9][0-9]?\w[0-9]_region_0")[0]:
         return "a2_outside_clone"
-    if foo.str.contains("a2g[0-9][0-9]?p[0-9]_region_[1-9][0-9]?")[0]:
+    if foo.str.contains("a2g[0-9][0-9]?\w[0-9]_region_[1-9][0-9]?")[0]:
         return "a2_inside_clone"
     else:
         return "unknown"
