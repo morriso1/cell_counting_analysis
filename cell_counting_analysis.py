@@ -195,9 +195,9 @@ def in_region_three_channel(
 def create_RGB_image_overlapping_regions(DF_C0, C0_img=None):
     rgbArray = np.zeros((C0_img.shape[0], C0_img.shape[1], 3), dtype="uint8")
 
-    rgbArray[:, :, 2] = C0_img
-
     label_C0_img = measure.label(C0_img)
+    C0_img[C0_img > 0] = 255
+    rgbArray[:, :, 2] = C0_img
 
     for ele in DF_C0[DF_C0["C0_in_C2"] > 0]["C0_in_C2"].index.to_numpy():
         rgbArray[:, :, 2][label_C0_img == ele] = 0
