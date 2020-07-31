@@ -9,38 +9,26 @@ import pandas as pd
 import re
 import seaborn as sns
 from collections import OrderedDict
-from skimage import io
-from skimage import morphology as sk_mm
-from skimage import filters
-from skimage import measure
+from skimage import io, morphology, filters, measure, feature, img_as_ubyte
 from scipy import ndimage
-import skimage
-import skimage.feature
-from scipy.ndimage import morphology as sp_mm
-from skimage.util import img_as_ubyte
+from scipy.ndimage import morphology as scipy_morphology
 from scipy.stats import mode
 import cv2
-import custom_plotting as cust_plt
+import custom_plotting as cp
 import analysing_imaging_data as aid
-
-
-# In[2]:
 
 
 def read_prob_image(fn):
     return io.imread(fn)[0]
 
 
-# In[3]:
-
-
 def apply_binary_methods(
     binary_image,
     binary_method_list=[
-        sk_mm.binary_erosion,
-        sk_mm.binary_opening,
-        [sp_mm.binary_fill_holes, sk_mm.selem.diamond(4)],
-        [sk_mm.binary_erosion, sk_mm.selem.diamond(3)],
+        morphology.binary_erosion,
+        morphology.binary_opening,
+        [scipy_morphology.binary_fill_holes, morphology.selem.diamond(4)],
+        [morphology.binary_erosion, morphology.selem.diamond(3)],
     ],
 ):
     edited_binary_image = np.copy(binary_image)
@@ -89,10 +77,10 @@ def create_dict_of_binary_masks(
     input_dir="Prob_Map_C1",
     thresh_method=filters.threshold_otsu,
     binary_method_list=[
-        [sk_mm.binary_erosion, sk_mm.selem.diamond(1)],
-        [sk_mm.binary_opening, sk_mm.selem.diamond(3)],
-        [sp_mm.binary_fill_holes, sk_mm.selem.diamond(4)],
-        [sk_mm.binary_erosion, sk_mm.selem.diamond(1)],
+        [morphology.binary_erosion, morphology.selem.diamond(1)],
+        [morphology.binary_opening, morphology.selem.diamond(3)],
+        [scipy_morphology.binary_fill_holes, morphology.selem.diamond(4)],
+        [morphology.binary_erosion, morphology.selem.diamond(1)],
     ],
     min_area=1000,
 ):
@@ -419,14 +407,14 @@ def create_stack_bar_plot(
     Plot_Name="",
     x_figSize=None,
     y_figSize=2.5,
-    y_label=cust_plt.identify_y_axis_label(aid.exp_analysis_name()),
+    y_label=cp.identify_y_axis_label(aid.exp_analysis_name()),
     y_axis_start=0,
     y_axis_limit=None,
     color_pal=sns.color_palette(palette="Blues_r"),
     bar_width=0.8,
 ):
     if x_figSize == None:
-        x_figSize = cust_plt.determine_fig_width(DF)
+        x_figSize = cp.determine_fig_width(DF)
 
     fig, ax = plt.subplots(figsize=(x_figSize, y_figSize))
 
@@ -477,12 +465,12 @@ def watershed_binary_img_to_labelled_img(
     binary_img, gaussian_sigma=3, kernel_size_peak_local_max=np.ones((18, 18))
 ):
     distance = ndimage.distance_transform_edt(binary_img)
-    distance = skimage.filters.gaussian(distance, sigma=gaussian_sigma)
-    local_maxi = skimage.feature.peak_local_max(
+    distance = filters.gaussian(distance, sigma=gaussian_sigma)
+    local_maxi = feature.peak_local_max(
         distance, indices=False, footprint=kernel_size_peak_local_max, labels=binary_img
     )
-    markers = skimage.morphology.label(local_maxi)
-    watershed_img = skimage.morphology.watershed(
+    markers = morphology.label(local_maxi)
+    watershed_img = morphology.watershed(
         -distance, markers=markers, mask=binary_img
     )
     return watershed_img
@@ -541,7 +529,7 @@ def outline_contours_labelled_img(
             )
             con_list.extend(contours)
             input_image = cv2.cvtColor(
-                skimage.img_as_ubyte(img_to_outline), cv2.COLOR_GRAY2RGB
+                img_as_ubyte(img_to_outline), cv2.COLOR_GRAY2RGB
             )
 
             p_low, p_high = np.percentile(
@@ -549,7 +537,7 @@ def outline_contours_labelled_img(
                 (constrast_stretch_low_bound, constrast_stretch_upper_bound),
             )
 
-            input_image = skimage.exposure.rescale_intensity(
+            input_image = exposure.rescale_intensity(
                 input_image, in_range=(p_low, p_high))
 
             outlined_img = cv2.drawContours(
