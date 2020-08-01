@@ -5,9 +5,86 @@ import glob
 import os
 import re
 
-"""Module contains functions: exp_analysis_name, compile_DF_from_CSVdirectory, extract_gut_names, combining_gut_DFs,
- analyse_imagej_CSVs, df_to_pzfx, write_pzfx, check_if_list_of_folders_exists, summarise_and_sort_list_of_DFs and 
- compileCSVs_sortbycondition_apply_method"""
+"""Module contains functions: read_csv_folder_into_tidy_df, grouped_tidy_data_summary_stats, exp_analysis_name, 
+compile_DF_from_CSVdirectory, extract_gut_names, combining_gut_DFs, analyse_imagej_CSVs, df_to_pzfx, write_pzfx,
+check_if_list_of_folders_exists, summarise_and_sort_list_of_DFs and compileCSVs_sortbycondition_apply_method"""
+
+
+def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' '], sample_id_categories=None):
+    """
+    Input
+    -----
+    Takes glob (str) to csv folder as input. Optional sample_id_categories (e.g. list).
+
+    Function
+    --------
+    Combines into tidy dataframe.
+
+    Returns
+    -------
+    Returns tidy dataframe.
+    """
+
+    df = (
+        dd.read_csv(csv_glob, include_path_column="sample_gut_id")
+        .compute()
+        .drop(columns=drop_columns)
+    )
+
+    if sample_id_categories is None:
+        df = df.assign(
+            sample_gut_id=lambda x: x["sample_gut_id"].str.findall(
+                "[a-z]\dg\d\d?").str[-1],
+            sample_id=lambda x: pd.Categorical(
+                x["sample_gut_id"].str.split("g", expand=True)[0],
+            ),
+            gut_id=lambda x: x["sample_gut_id"].str.split("g", expand=True)[1],
+        )
+
+    else:
+        df = df.assign(
+            sample_gut_id=lambda x: x["sample_gut_id"].str.findall(
+                "[a-z]\dg\d\d?").str[-1],
+            sample_id=lambda x: pd.Categorical(
+                x["sample_gut_id"].str.split("g", expand=True)[
+                    0], categories=sample_id_categories
+            ),
+            gut_id=lambda x: x["sample_gut_id"].str.split("g", expand=True)[1],
+        )
+
+    return df
+
+
+def grouped_tidy_data_summary_stats(
+    tidy_df, group_col="image_key", categories=None, agg_funcs=['mean'], **agg_kwargs
+):
+    """
+    Input
+    -----
+    Takes tidy DataFrame, group_col (str), categories (e.g. list) and aggregation functions.
+
+    Returns
+    -------
+    Tidy DataFrame with 'summary_stats' performed on selected group.
+    """
+
+    tidy_df_grouped = (
+        tidy_df.groupby(by=group_col)
+        .agg(agg_funcs, **agg_kwargs, axis="column")
+        .stack()
+        .reset_index()
+        .rename(columns={"level_1": "summary_stat"})
+    )
+
+    if categories is not None:
+        tidy_df_grouped[["sample_id", "gut_id"]] = tidy_df_grouped[group_col].str.split(
+            "g", expand=True
+        )
+        tidy_df_grouped["sample_id"] = pd.Categorical(
+            tidy_df_grouped["sample_id"], categories=categories
+        )
+
+    return(tidy_df_grouped)
 
 
 def exp_analysis_name(Exp_Folder=os.getcwd()):
@@ -332,80 +409,3 @@ def compileCSVs_sortbycondition_apply_method(
 
     else:
         return
-
-
-def read_csv_folder_into_tidy_df(csv_glob, drop_columns=[' '], sample_id_categories=None):
-    """
-    Input
-    -----
-    Takes glob (str) to csv folder as input. Optional sample_id_categories (e.g. list).
-
-    Function
-    --------
-    Combines into tidy dataframe.
-
-    Returns
-    -------
-    Returns tidy dataframe.
-    """
-
-    df = (
-        dd.read_csv(csv_glob, include_path_column="sample_gut_id")
-        .compute()
-        .drop(columns=drop_columns)
-    )
-
-    if sample_id_categories is None:
-        df = df.assign(
-            sample_gut_id=lambda x: x["sample_gut_id"].str.findall(
-                "[a-z]\dg\d\d?").str[-1],
-            sample_id=lambda x: pd.Categorical(
-                x["sample_gut_id"].str.split("g", expand=True)[0],
-            ),
-            gut_id=lambda x: x["sample_gut_id"].str.split("g", expand=True)[1],
-        )
-
-    else:
-        df = df.assign(
-            sample_gut_id=lambda x: x["sample_gut_id"].str.findall(
-                "[a-z]\dg\d\d?").str[-1],
-            sample_id=lambda x: pd.Categorical(
-                x["sample_gut_id"].str.split("g", expand=True)[
-                    0], categories=sample_id_categories
-            ),
-            gut_id=lambda x: x["sample_gut_id"].str.split("g", expand=True)[1],
-        )
-
-    return df
-
-
-def grouped_tidy_data_summary_stats(
-    tidy_df, group_col="image_key", categories=None, agg_funcs=['mean'], **agg_kwargs
-):
-    """
-    Input
-    -----
-    Takes tidy DataFrame, group_col (str), categories (e.g. list) and aggregation functions.
-
-    Returns
-    -------
-    Tidy DataFrame with 'summary_stats' performed on selected group.
-    """
-
-    tidy_df_grouped = (
-        tidy_df.groupby(by=group_col)
-        .agg(agg_funcs, **agg_kwargs, axis="column")
-        .stack()
-        .reset_index()
-        .rename(columns={"level_1": "summary_stat"})
-    )
-
-    if categories is not None:
-        tidy_df_grouped[["sample_id", "gut_id"]] = tidy_df_grouped[group_col].str.split(
-            "g", expand=True
-        )
-        tidy_df_grouped["sample_id"] = pd.Categorical(
-            tidy_df_grouped["sample_id"], categories=categories
-        )
-
-    return(tidy_df_grouped)
