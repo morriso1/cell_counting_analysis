@@ -14,8 +14,8 @@ from scipy import ndimage
 from scipy.ndimage import morphology as scipy_morphology
 from scipy.stats import mode
 import cv2
-import custom_plotting as cp
-import analysing_imaging_data as aid
+from custom_plotting import custom_plotting as cp
+from analysing_imaging_data import analysing_imaging_data as aid
 
 
 def read_prob_image(fn):
