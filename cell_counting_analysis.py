@@ -180,6 +180,57 @@ def in_region_three_channel(
     return DF_C0
 
 
+def in_region_four_channel(
+    C0_img=None,
+    C1_img=None,
+    C2_img=None,
+    C3_img=None,
+    C1_overlap_threshold=0.5,
+    C2_overlap_threshold=0.3,
+    C3_overlap_threshold=0.5,
+    pixel_size=0.4,
+):
+    label_C0_img = measure.label(C0_img)
+    label_C1_img = measure.label(C1_img)
+    label_C2_img = measure.label(C2_img)
+
+    C0_props = measure.regionprops_table(
+        label_C0_img, properties=["label", "centroid", "area"]
+    )
+
+    DF_C0 = pd.DataFrame.from_dict(C0_props, dtype=int)
+
+    DF_C0["C0_in_C3"] = DF_C0.apply(
+        region_overlap,
+        axis=1,
+        label_img_outer=label_C3_img,
+        label_img_inner=label_C0_img,
+        overlap_thresh=C3_overlap_threshold,
+    )
+
+    DF_C0["C0_in_C2"] = DF_C0.apply(
+        region_overlap,
+        axis=1,
+        label_img_outer=label_C2_img,
+        label_img_inner=label_C0_img,
+        overlap_thresh=C2_overlap_threshold,
+    )
+
+    DF_C0["C0_in_C1"] = DF_C0.apply(
+        region_overlap,
+        axis=1,
+        label_img_outer=label_C1_img,
+        label_img_inner=label_C0_img,
+        overlap_thresh=C1_overlap_threshold,
+    )
+
+    DF_C0.set_index("label", inplace=True)
+
+    DF_C0["area"] = DF_C0["area"] * (pixel_size ** 2)
+
+    return DF_C0
+
+
 def create_RGB_image_overlapping_regions(DF_C0, C0_img=None):
     rgbArray = np.zeros((C0_img.shape[0], C0_img.shape[1], 3), dtype="uint8")
 
