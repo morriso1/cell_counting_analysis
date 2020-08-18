@@ -193,6 +193,7 @@ def in_region_four_channel(
     label_C0_img = measure.label(C0_img)
     label_C1_img = measure.label(C1_img)
     label_C2_img = measure.label(C2_img)
+    label_C3_img = measure.label(C3_img)
 
     C0_props = measure.regionprops_table(
         label_C0_img, properties=["label", "centroid", "area"]
@@ -271,7 +272,7 @@ def test_imagecollections_same_files_and_order(
     )
 
 
-def marcm_save_CSVs_RGB_images_overlapping_regions(
+def marcm_save_CSVs_RGB_images_overlapping_regions_three_channel(
     Bin_C0_Dir="Binaries_C0",
     Bin_C1_Dir="Binaries_C1",
     Bin_C2_Dir="Binaries_C2",
@@ -316,8 +317,71 @@ def marcm_save_CSVs_RGB_images_overlapping_regions(
             C0_img=C0_img,
             C1_img=C1_img,
             C2_img=C2_img,
-            C2_overlap_threshold=C2_overlap_threshold,
             C1_overlap_threshold=C1_overlap_threshold,
+            C2_overlap_threshold=C2_overlap_threshold,
+            pixel_size=pixel_size,
+        )
+        Dict_DFs[names] = DF
+        DF.to_csv(os.path.join(csv_save_dir, names + ".csv"))
+        RGB_img = create_RGB_image_overlapping_regions(DF, C0_img=C0_img)
+        io.imsave(os.path.join(RGB_save_dir, names + ".tiff"), RGB_img)
+    return Dict_DFs
+
+
+def marcm_save_CSVs_RGB_images_overlapping_regions_four_channel(
+    Bin_C0_Dir="Binaries_C0",
+    Bin_C1_Dir="Binaries_C1",
+    Bin_C2_Dir="Binaries_C2",
+    Bin_C3_Dir="Binaries_C3",
+    C1_overlap_threshold=0.5,
+    C2_overlap_threshold=0.3,
+    C3_overlap_threshold=0.5,
+    pixel_size=0.4,
+    csv_save_dir="CSVs_C0_in_C1C2C3",
+    RGB_save_dir="RGB_C0_overlapping_regions",
+):
+
+    ic_C0 = io.ImageCollection(
+        load_pattern=os.path.join(Bin_C0_Dir, "*.tif*"), load_func=read_image_2d
+    )
+    ic_C1 = io.ImageCollection(
+        load_pattern=os.path.join(Bin_C1_Dir, "*.tif*"), load_func=read_image_2d
+    )
+    ic_C2 = io.ImageCollection(
+        load_pattern=os.path.join(Bin_C2_Dir, "*.tif*"), load_func=read_image_2d
+    )
+    ic_C3 = io.ImageCollection(
+        load_pattern=os.path.join(Bin_C3_Dir, "*.tif*"), load_func=read_image_2d
+    )
+
+    condition, img_names = test_imagecollections_same_files_and_order(
+        ic_C0, ic_C1, ic_C2, ic_C3
+    )
+
+    if not condition:
+        print(
+            f"""{Bin_C0_Dir}, {Bin_C1_Dir}, {Bin_C2_Dir}, {Bin_C3_Dir} do not contain the same number 
+            of files or they are not in the same order."""
+        )
+        return
+
+    if not os.path.isdir(csv_save_dir):
+        os.mkdir(csv_save_dir)
+
+    if not os.path.isdir(RGB_save_dir):
+        os.mkdir(RGB_save_dir)
+
+    Dict_DFs = OrderedDict()
+
+    for C0_img, C1_img, C2_img, C3_img, names in zip(ic_C0, ic_C1, ic_C2, ic_C3, img_names):
+        DF = in_region_four_channel(
+            C0_img=C0_img,
+            C1_img=C1_img,
+            C2_img=C2_img,
+            C3_img=C3_img,
+            C1_overlap_threshold=C1_overlap_threshold,
+            C2_overlap_threshold=C2_overlap_threshold,
+            C3_overlap_threshold=C3_overlap_threshold,
             pixel_size=pixel_size,
         )
         Dict_DFs[names] = DF
@@ -363,6 +427,33 @@ def analyse_marcm_DFs(DF, DF_name=None, EC_min_area=40):
 
 
 def analyse_marcm_DFs_alt(DF, DF_name=None, EC_min_area=40):
+    DF_new = pd.DataFrame()
+
+    for value in np.sort(DF["C0_in_C1"].unique()):
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area>{EC_min_area}um2"] = (
+            (DF["C0_in_C1"] == value)
+            & (DF["C0_in_C2"] == 0)
+            & (DF["area"] > EC_min_area)
+        ).sum(0)
+
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area<{EC_min_area}um2"] = (
+            (DF["C0_in_C1"] == value)
+            & (DF["C0_in_C2"] == 0)
+            & (DF["area"] < EC_min_area)
+        ).sum(0)
+
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos"] = (
+            (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
+        ).sum(0)
+
+        DF_new.loc[f"{DF_name}_region_{value}", "Total"] = (
+            DF["C0_in_C1"] == value
+        ).sum(0)
+
+    return DF_new
+
+
+def analyse_marcm_DFs_four_channel(DF, DF_name=None, EC_min_area=40):
     DF_new = pd.DataFrame()
 
     for value in np.sort(DF["C0_in_C1"].unique()):
