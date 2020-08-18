@@ -457,20 +457,26 @@ def analyse_marcm_DFs_four_channel(DF, DF_name=None, EC_min_area=40):
     DF_new = pd.DataFrame()
 
     for value in np.sort(DF["C0_in_C1"].unique()):
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area>{EC_min_area}um2"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2negC3neg_C0area<{EC_min_area}um2"] = (
             (DF["C0_in_C1"] == value)
             & (DF["C0_in_C2"] == 0)
-            & (DF["area"] > EC_min_area)
+            & (DF["C0_in_C3"] == 0)
+            & (DF["area"] < EC_min_area)
         ).sum(0)
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area<{EC_min_area}um2"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2negC3neg_C0area>{EC_min_area}um2"] = (
             (DF["C0_in_C1"] == value)
             & (DF["C0_in_C2"] == 0)
-            & (DF["area"] < EC_min_area)
+            & (DF["C0_in_C3"] == 0)
+            & (DF["area"] > EC_min_area)
         ).sum(0)
 
         DF_new.loc[f"{DF_name}_region_{value}", f"C2pos"] = (
             (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
+        ).sum(0)
+
+        DF_new.loc[f"{DF_name}_region_{value}", f"C3pos"] = (
+            (DF["C0_in_C1"] == value) & (DF["C0_in_C3"] != 0)
         ).sum(0)
 
         DF_new.loc[f"{DF_name}_region_{value}", "Total"] = (
