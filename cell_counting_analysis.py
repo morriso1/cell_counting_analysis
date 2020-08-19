@@ -241,8 +241,6 @@ def create_RGB_image_overlapping_regions(DF_C0, C0_img_input=None, in_clone_str=
     C0_img_lab[C0_img_lab > 0] = 255
     rgbArray[:, :, 2] = C0_img_lab
 
-    print(len(np.unique(label_C0_img)))
-
     for ele in DF_C0[DF_C0[other_channel_str] > 0][other_channel_str].index.to_numpy():
         rgbArray[:, :, 2][label_C0_img == ele] = 0
 
