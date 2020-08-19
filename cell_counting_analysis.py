@@ -471,27 +471,35 @@ def analyse_marcm_DFs_four_channel(DF, DF_name=None, EC_min_area=40):
     DF_new = pd.DataFrame()
 
     for value in np.sort(DF["C0_in_C1"].unique()):
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2negC3neg_C0area<{EC_min_area}um2"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2negC3neg_C0area<{EC_min_area}um2_count"] = (
             (DF["C0_in_C1"] == value)
             & (DF["C0_in_C2"] == 0)
             & (DF["C0_in_C3"] == 0)
             & (DF["area"] < EC_min_area)
         ).sum(0)
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2negC3neg_C0area>{EC_min_area}um2"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2negC3neg_C0area>{EC_min_area}um2_count"] = (
             (DF["C0_in_C1"] == value)
             & (DF["C0_in_C2"] == 0)
             & (DF["C0_in_C3"] == 0)
             & (DF["area"] > EC_min_area)
         ).sum(0)
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos_count"] = (
             (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
         ).sum(0)
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C3pos"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos_area"] = DF[(
+            (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
+        )]["area"].mean()
+
+        DF_new.loc[f"{DF_name}_region_{value}", f"C3pos_Count"] = (
             (DF["C0_in_C1"] == value) & (DF["C0_in_C3"] != 0)
         ).sum(0)
+
+        DF_new.loc[f"{DF_name}_region_{value}", f"C3pos_area"] = DF[(
+            (DF["C0_in_C1"] == value) & (DF["C0_in_C3"] != 0)
+        )]["area"].mean()
 
         DF_new.loc[f"{DF_name}_region_{value}", "Total"] = (
             DF["C0_in_C1"] == value
@@ -512,6 +520,7 @@ def combine_marcm_dict_DFs(
 
     cols = Output_DF_num.columns.tolist()
     cols.remove(total_col)
+    cols = [col for col in cols if 'count' in col]
 
     Output_DF_percentage = (
         Output_DF_num[cols].div(Output_DF_num[total_col], axis=0) * 100
