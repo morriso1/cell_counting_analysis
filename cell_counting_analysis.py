@@ -232,23 +232,27 @@ def in_region_four_channel(
     return DF_C0
 
 
-def create_RGB_image_overlapping_regions(DF_C0, C0_img=None):
-    rgbArray = np.zeros((C0_img.shape[0], C0_img.shape[1], 3), dtype="uint8")
+def create_RGB_image_overlapping_regions(DF_C0, C0_img_input=None, in_clone_str="C0_in_C1", other_channel_str="C0_in_C2"):
+    rgbArray = np.zeros(
+        (C0_img_input.shape[0], C0_img_input.shape[1], 3), dtype="uint8")
 
-    label_C0_img = measure.label(C0_img)
-    C0_img[C0_img > 0] = 255
-    rgbArray[:, :, 2] = C0_img
+    label_C0_img = measure.label(C0_img_input)
+    C0_img_lab = label_C0_img.copy()
+    C0_img_lab[C0_img_lab > 0] = 255
+    rgbArray[:, :, 2] = C0_img_lab
 
-    for ele in DF_C0[DF_C0["C0_in_C2"] > 0]["C0_in_C2"].index.to_numpy():
+    print(len(np.unique(label_C0_img)))
+
+    for ele in DF_C0[DF_C0[other_channel_str] > 0][other_channel_str].index.to_numpy():
         rgbArray[:, :, 2][label_C0_img == ele] = 0
 
-    for ele in DF_C0[DF_C0["C0_in_C1"] > 0]["C0_in_C1"].index.to_numpy():
+    for ele in DF_C0[DF_C0[in_clone_str] > 0][in_clone_str].index.to_numpy():
         rgbArray[:, :, 2][label_C0_img == ele] = 0
 
-    for ele in DF_C0[DF_C0["C0_in_C2"] > 0]["C0_in_C2"].index.to_numpy():
+    for ele in DF_C0[DF_C0[other_channel_str] > 0][other_channel_str].index.to_numpy():
         rgbArray[:, :, 0][label_C0_img == ele] = 255
 
-    for ele in DF_C0[DF_C0["C0_in_C1"] > 0]["C0_in_C1"].index.to_numpy():
+    for ele in DF_C0[DF_C0[in_clone_str] > 0][in_clone_str].index.to_numpy():
         rgbArray[:, :, 1][label_C0_img == ele] = 255
 
     return rgbArray
@@ -337,8 +341,10 @@ def marcm_save_CSVs_RGB_images_overlapping_regions_four_channel(
     C2_overlap_threshold=0.3,
     C3_overlap_threshold=0.5,
     pixel_size=0.4,
+    save_stuff=True,
     csv_save_dir="CSVs_C0_in_C1C2C3",
-    RGB_save_dir="RGB_C0_overlapping_regions",
+    RGB_save_dir_C2="RGB_overlapping_regions_C0C1C2",
+    RGB_save_dir_C3="RGB_C0_overlapping_regions_C0C1C3",
 ):
 
     ic_C0 = io.ImageCollection(
@@ -368,8 +374,11 @@ def marcm_save_CSVs_RGB_images_overlapping_regions_four_channel(
     if not os.path.isdir(csv_save_dir):
         os.mkdir(csv_save_dir)
 
-    if not os.path.isdir(RGB_save_dir):
-        os.mkdir(RGB_save_dir)
+    if not os.path.isdir(RGB_save_dir_C2):
+        os.mkdir(RGB_save_dir_C2)
+
+    if not os.path.isdir(RGB_save_dir_C3):
+        os.mkdir(RGB_save_dir_C3)
 
     Dict_DFs = OrderedDict()
 
@@ -385,9 +394,16 @@ def marcm_save_CSVs_RGB_images_overlapping_regions_four_channel(
             pixel_size=pixel_size,
         )
         Dict_DFs[names] = DF
-        DF.to_csv(os.path.join(csv_save_dir, names + ".csv"))
-        RGB_img = create_RGB_image_overlapping_regions(DF, C0_img=C0_img)
-        io.imsave(os.path.join(RGB_save_dir, names + ".tiff"), RGB_img)
+        if save_stuff:
+            DF.to_csv(os.path.join(csv_save_dir, names + ".csv"))
+            RGB_img_C2 = create_RGB_image_overlapping_regions(
+                DF, C0_img_input=C0_img, in_clone_str='C0_in_C1', other_channel_str='C0_in_C3')
+            io.imsave(os.path.join(RGB_save_dir_C2,
+                                   names + ".tiff"), RGB_img_C2)
+            RGB_img_C3 = create_RGB_image_overlapping_regions(
+                DF, C0_img_input=C0_img, in_clone_str='C0_in_C1', other_channel_str='C0_in_C3')
+            io.imsave(os.path.join(RGB_save_dir_C3,
+                                   names + ".tiff"), RGB_img_C3)
     return Dict_DFs
 
 
