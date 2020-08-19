@@ -325,7 +325,7 @@ def marcm_save_CSVs_RGB_images_overlapping_regions_three_channel(
         )
         Dict_DFs[names] = DF
         DF.to_csv(os.path.join(csv_save_dir, names + ".csv"))
-        RGB_img = create_RGB_image_overlapping_regions(DF, C0_img=C0_img)
+        RGB_img = create_RGB_image_overlapping_regions(DF, C0_img_input=C0_img)
         io.imsave(os.path.join(RGB_save_dir, names + ".tiff"), RGB_img)
     return Dict_DFs
 
@@ -444,21 +444,25 @@ def analyse_marcm_DFs_alt(DF, DF_name=None, EC_min_area=40):
     DF_new = pd.DataFrame()
 
     for value in np.sort(DF["C0_in_C1"].unique()):
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area>{EC_min_area}um2"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area>{EC_min_area}um2_count"] = (
             (DF["C0_in_C1"] == value)
             & (DF["C0_in_C2"] == 0)
             & (DF["area"] > EC_min_area)
         ).sum(0)
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area<{EC_min_area}um2"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2neg_C0area<{EC_min_area}um2_count"] = (
             (DF["C0_in_C1"] == value)
             & (DF["C0_in_C2"] == 0)
             & (DF["area"] < EC_min_area)
         ).sum(0)
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos_count"] = (
             (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
         ).sum(0)
+
+        DF_new.loc[f"{DF_name}_region_{value}", f"C2pos_area"] = DF[(
+            (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
+        )]["area"].mean()
 
         DF_new.loc[f"{DF_name}_region_{value}", "Total"] = (
             DF["C0_in_C1"] == value
