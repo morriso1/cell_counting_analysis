@@ -1,6 +1,7 @@
 # function created by Guillaume Witz
 
 import matplotlib
+import numpy as np
 
 
 def random_cmap():
