@@ -493,7 +493,7 @@ def analyse_marcm_DFs_four_channel(DF, DF_name=None, EC_min_area=40):
             (DF["C0_in_C1"] == value) & (DF["C0_in_C2"] != 0)
         )]["area"].mean()
 
-        DF_new.loc[f"{DF_name}_region_{value}", f"C3pos_Count"] = (
+        DF_new.loc[f"{DF_name}_region_{value}", f"C3pos_count"] = (
             (DF["C0_in_C1"] == value) & (DF["C0_in_C3"] != 0)
         ).sum(0)
 
@@ -548,7 +548,7 @@ def define_sample_in_or_out_clone(foo):
         return "unknown"
 
 
-def sorted_DFs_mean_sem(DF, set_index_col="Sample_in_or_out_clone", remove_col="Total"):
+def sorted_DFs_mean_sem(DF, set_index_col="Sample_in_or_out_clone"):
     DF = DF.set_index(set_index_col)
 
     DF_mean = pd.DataFrame()
@@ -561,11 +561,10 @@ def sorted_DFs_mean_sem(DF, set_index_col="Sample_in_or_out_clone", remove_col="
     DF_mean = DF_mean.T
     DF_sem = DF_sem.T
 
-    if remove_col in DF_mean.columns:
-        DF_mean.drop(columns=remove_col, inplace=True)
+    cols = DF_mean.columns[DF_mean.columns.str.contains('count')]
 
-    if remove_col in DF_sem.columns:
-        DF_sem.drop(columns=remove_col, inplace=True)
+    DF_mean = DF_mean[cols]
+    DF_sem = DF_sem[cols]
 
     return DF_mean, DF_sem
 
