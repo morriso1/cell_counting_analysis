@@ -15,3 +15,17 @@ def create_dict_of_multi_dim_imgs(
         if files.endswith(f_extension)
     }
     return C0_imgs
+
+
+def save_dict_of_imgs_as_tiff(
+    img_dict, save_dir=os.getcwd(), additional_identifier="C", img_dtype_function=img_as_uint,
+):
+    if type(img_dict) is not dict:
+        return print(f"{img_dict} is not a dictionary.")
+
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+
+    for key, value in img_dict.items():
+        io.imsave(os.path.join(
+            save_dir, f"{key}_{additional_identifier}.tiff"), img_as_uint(value))
