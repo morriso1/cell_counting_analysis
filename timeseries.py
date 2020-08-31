@@ -73,7 +73,7 @@ def stack_label_images_to_tidy_df(
     return features
 
 
-def keep_particle_through_stack(linked_df):
+def keep_particles_through_stack(linked_df):
     first_frame = linked_df["frame"].min()
     last_frame = linked_df["frame"].max()
 
