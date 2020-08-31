@@ -81,4 +81,7 @@ def keep_particle_through_stack(linked_df):
     final_list = linked_df.query("frame == @last_frame")["particle"].values
     common_list = initial_list[np.isin(initial_list, final_list)]
     filt = linked_df.copy().query("particle in @common_list")
+    print(f"{len(initial_list)} in initial list")
+    print(f"{len(final_list)} in final list")
+    print(f"{len(common_list)} in common list")
     return filt.drop(columns='label').reset_index(drop=True)
