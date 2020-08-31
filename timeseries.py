@@ -1,5 +1,6 @@
-from skimage import io, img_as_float, img_as_uint, img_as_ubyte
+from skimage import io, img_as_float, img_as_uint, img_as_ubyte, measure
 from matplotlib import pyplot as plt
+import pandas as pd
 import os
 import re
 
@@ -29,3 +30,43 @@ def save_dict_of_imgs_as_tiff(
     for key, value in img_dict.items():
         io.imsave(os.path.join(
             save_dir, f"{key}_{additional_identifier}.tiff"), img_as_uint(value))
+
+
+def stack_label_images_to_tidy_df(
+    label_img_stack,
+    num_intensity_img_stack,
+    denom_intensity_img_stack,
+    properties=["label", "mean_intensity", "area", "centroid"],
+):
+    features = pd.DataFrame()
+    for i, lab_img in enumerate(label_img_stack):
+        df = pd.DataFrame(
+            measure.regionprops_table(
+                lab_img,
+                intensity_image=img_as_uint(num_intensity_img_stack[i, :, :]),
+                properties=properties,
+            )
+        )
+        df["frame"] = i
+        df.rename(
+            columns={
+                "mean_intensity": "mean_intensity_num",
+                "centroid-0": "y",
+                "centroid-1": "x",
+            },
+            inplace=True,
+        )
+        df["mean_intensity_denom"] = pd.DataFrame(
+            measure.regionprops_table(
+                lab_img,
+                intensity_image=img_as_uint(
+                    denom_intensity_img_stack[i, :, :]),
+                properties=["mean_intensity"],
+            )["mean_intensity"]
+        )
+        df["mean_intensity_num_denom"] = (
+            df["mean_intensity_num"] / df["mean_intensity_denom"]
+        )
+        features = features.append(df)
+
+    return features
