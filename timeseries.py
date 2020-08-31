@@ -70,3 +70,14 @@ def stack_label_images_to_tidy_df(
         features = features.append(df)
 
     return features
+
+
+def keep_particle_through_stack(linked_df):
+    first_frame = linked_df["frame"].min()
+    last_frame = linked_df["frame"].max()
+
+    initial_list = linked_df.query("frame == @first_frame")["particle"].values
+    final_list = linked_df.query("frame == @last_frame")["particle"].values
+    common_list = initial_list[np.isin(initial_list, final_list)]
+    filt = linked_df.copy().query("particle in @common_list")
+    return filt.drop(columns='label').reset_index(drop=True
