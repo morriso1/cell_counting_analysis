@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import os
 import re
+import numpy as np
 
 
 def create_dict_of_multi_dim_imgs(
@@ -80,4 +81,4 @@ def keep_particle_through_stack(linked_df):
     final_list = linked_df.query("frame == @last_frame")["particle"].values
     common_list = initial_list[np.isin(initial_list, final_list)]
     filt = linked_df.copy().query("particle in @common_list")
-    return filt.drop(columns='label').reset_index(drop=True
+    return filt.drop(columns='label').reset_index(drop=True)
