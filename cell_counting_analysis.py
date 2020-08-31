@@ -635,21 +635,6 @@ def create_stack_bar_plot(
                 transparent=True, bbox_inches="tight")
 
 
-def watershed_binary_img_to_labelled_img(
-    binary_img, gaussian_sigma=3, kernel_size_peak_local_max=np.ones((18, 18))
-):
-    distance = ndimage.distance_transform_edt(binary_img)
-    distance = filters.gaussian(distance, sigma=gaussian_sigma)
-    local_maxi = feature.peak_local_max(
-        distance, indices=False, footprint=kernel_size_peak_local_max, labels=binary_img
-    )
-    markers = morphology.label(local_maxi)
-    watershed_img = segmentation.watershed(
-        -distance, markers=markers, mask=binary_img
-    )
-    return watershed_img
-
-
 def create_labelled_img_dict_from_folder(label_img_re=r"\w\dg\d\d?", **kwargs):
     img_collection = io.ImageCollection(**kwargs)
     labelled_img_dict = {
