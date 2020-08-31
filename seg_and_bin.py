@@ -1,5 +1,6 @@
 from scipy import ndimage
 from skimage import filters, feature, morphology, segmentation
+import numpy as np
 
 
 def watershed_binary_img_to_labelled_img(
