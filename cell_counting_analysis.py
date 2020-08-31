@@ -9,7 +9,7 @@ import pandas as pd
 import re
 import seaborn as sns
 from collections import OrderedDict
-from skimage import io, morphology, filters, measure, feature, img_as_ubyte
+from skimage import io, morphology, filters, measure, feature, img_as_ubyte, segmentation
 from scipy import ndimage
 from scipy.ndimage import morphology as scipy_morphology
 from scipy.stats import mode
@@ -644,7 +644,7 @@ def watershed_binary_img_to_labelled_img(
         distance, indices=False, footprint=kernel_size_peak_local_max, labels=binary_img
     )
     markers = morphology.label(local_maxi)
-    watershed_img = morphology.watershed(
+    watershed_img = segmentation.watershed(
         -distance, markers=markers, mask=binary_img
     )
     return watershed_img
