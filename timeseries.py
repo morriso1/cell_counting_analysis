@@ -84,4 +84,4 @@ def keep_particles_through_stack(linked_df):
     print(f"{len(initial_list)} in initial list")
     print(f"{len(final_list)} in final list")
     print(f"{len(common_list)} in common list")
-    return filt.drop(columns='label').reset_index(drop=True)
+    return filt.reset_index(drop=True)
