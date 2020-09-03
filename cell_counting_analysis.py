@@ -395,7 +395,7 @@ def marcm_save_CSVs_RGB_images_overlapping_regions_four_channel(
         if save_stuff:
             DF.to_csv(os.path.join(csv_save_dir, names + ".csv"))
             RGB_img_C2 = create_RGB_image_overlapping_regions(
-                DF, C0_img_input=C0_img, in_clone_str='C0_in_C1', other_channel_str='C0_in_C3')
+                DF, C0_img_input=C0_img, in_clone_str='C0_in_C1', other_channel_str='C0_in_C2')
             io.imsave(os.path.join(RGB_save_dir_C2,
                                    names + ".tiff"), RGB_img_C2)
             RGB_img_C3 = create_RGB_image_overlapping_regions(
