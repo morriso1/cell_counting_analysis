@@ -36,3 +36,12 @@ def gaussian_threshold_remove_small_objects_and_holes(
         ),
         area_threshold=min_hole_size,
     )
+
+    def rolling_disk(image, radius=50, light_bg=False):
+        from skimage.morphology import white_tophat, black_tophat, disk 
+        str_el = disk(radius)
+        print(image.shape)
+        if light_bg:
+            return black_tophat(image, str_el)
+        else:
+            return white_tophat(image, str_el)
