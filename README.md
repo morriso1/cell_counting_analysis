@@ -1,8 +1,5 @@
-# Image analysis tools:
+# No longer under active development
 
-## cell_counting_analysis
-Performs cell counting or cell lineage analysis e.g. number of cells of type X inside clone and outside clone.
+Much of the functionality of `cell_counting_analysis` has been rewritten and expanded in clonedetective - a python package for the analysis of fluorescent imaging data from cell lineage experiments.
 
-Takes as input binary segmentations of each channel: nuclei (e.g. DAPI), clonal marker (e.g. GFP) and cell-type marker (e.g. Delta - intestinal stem cell marker). Automatic segmentations are best perform using either classical machine-learning tools (e.g. Ilastik) or deep-learning tools (e.g. cellpose, stardist).
-
-![example_pose](/cca_images/example_pose.png)
+Please see [clonedetective](https://github.com/morriso1/clonedetective/tree/master/).
